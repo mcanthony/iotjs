@@ -117,6 +117,10 @@ class JObject {
                       bool direct_mode = true,
                       bool strict_mode = false);
 
+  // Evaluate javascript snapshot.
+  static JResult ExecSnapshot(const void *snapshot_p,
+                              size_t snapshot_size);
+
 
   // Destoyer for this class.
   // When the wrapper is being destroyed, ref count for correspoding javascript

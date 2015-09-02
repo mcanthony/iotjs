@@ -256,6 +256,27 @@ JResult JObject::Eval(const String& source,
   return JResult(&res, type);
 }
 
+JResult JObject::ExecSnapshot(const void *snapshot_p,
+                              size_t snapshot_size) {
+  JRawValueType res;
+  jerry_completion_code_t ret;
+  ret = jerry_exec_snapshot (snapshot_p,
+                             snapshot_size,
+                             false, /* run in eval mode */
+                             false, /* the snapshot buffer
+                                     * can be referenced
+                                     * until jerry_cleanup is not called */
+                             &res);
+
+  IOTJS_ASSERT(ret == JERRY_COMPLETION_CODE_OK ||
+               ret == JERRY_COMPLETION_CODE_UNHANDLED_EXCEPTION);
+
+  JResultType type = (ret == JERRY_COMPLETION_CODE_OK)
+                     ? JRESULT_OK
+                     : JRESULT_EXCEPTION;
+
+  return JResult(&res, type);
+}
 
 void JObject::SetMethod(const char* name, JHandlerType handler) {
   IOTJS_ASSERT(IsObject());

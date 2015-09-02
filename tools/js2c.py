@@ -20,6 +20,7 @@ import sys
 import glob
 import os
 import re
+import subprocess
 
 def extractName(path):
     return os.path.splitext(os.path.basename(path))[0]
@@ -32,20 +33,6 @@ def writeLine(fo, content, indent=0):
 
 def regroup(l, n):
     return [ l[i:i+n] for i in range(0, len(l), n) ]
-
-def removeComments(code):
-    pattern = r'(\".*?\"|\'.*?\')|(/\*.*?\*/|//[^\r\n]*$)'
-    regex = re.compile(pattern, re.MULTILINE | re.DOTALL)
-    def _replacer(match):
-        if match.group(2) is not None:
-            return ""
-        else:
-            return match.group(1)
-    return regex.sub(_replacer, code)
-
-def removeWhitespaces(code):
-    return re.sub('\n+', '\n', re.sub('\n +', '\n', code))
-
 
 LICENSE = '''/* Copyright 2015 Samsung Electronics Co., Ltd.
  *
@@ -74,6 +61,9 @@ FOOTER = '''}
 #endif
 '''
 
+# FIXME
+DUMPER = '../deps/jerry/build/bin/debug.linux/jerry'
+
 SRC_PATH = '../src/'
 JS_PATH = SRC_PATH + 'js/'
 
@@ -93,28 +83,52 @@ files = glob.glob(JS_PATH + '*.js')
 for path in files:
     name = extractName(path)
     fout.write('const char ' + name + '_n [] = "' + name + '";\n')
-    fout.write('const char ' + name + '_s [] = {\n')
+    fout.write('const unsigned char ' + name + '_s [] = {\n')
 
-    code = open(path, 'r').read() + '\0'
+    fmodule = open(path, 'r')
+    module = fmodule.read()
+    fmodule.close()
 
-    # minimize code when release mode
-    if buildtype != 'debug':
-        code = removeComments(code)
-        code = removeWhitespaces(code)
+    fmodule_wrapped = open(path + '.wrapped', 'w')
+    # FIXME
+    if name != 'iotjs':
+      fmodule_wrapped.write ("(function (a, b, c) {\n")
+      fmodule_wrapped.write ("function wwwwrap(exports, require, module) {\n");
 
-    for line in regroup(code, 10):
-        buf = ', '.join(map(lambda ch: str(ord(ch)), line))
-        if line[-1] != '\0':
-            buf += ','
+    fmodule_wrapped.write (module)
+
+    if name != 'iotjs':
+      fmodule_wrapped.write ("};\n");
+      fmodule_wrapped.write ("wwwwrap(a, b, c); });\n")
+    fmodule_wrapped.close()
+
+    # FIXME
+    ret = subprocess.call([DUMPER,
+                          '--dump-snapshot',
+                          path + '.snapshot',
+                          path + '.wrapped'])
+    if ret != 0:
+        msg = 'Failed to dump ' + path + (": - %d]" % (ret))
+        print "%s%s%s" % ("\033[1;31m", msg, "\033[0m")
+        exit(1)
+
+    code = open(path + '.snapshot', 'r').read()
+
+    os.remove (path + '.wrapped')
+    os.remove (path + '.snapshot')
+
+    for line in regroup(code, 8):
+        buf = ', '.join(map(lambda ch: "0x{:02x}".format(ord(ch)), line))
+        buf += ','
         writeLine(fout, buf, 1)
     writeLine(fout, '};')
-    writeLine(fout, 'const int ' + name + '_l = ' + str(len(code)-1) + ';')
+    writeLine(fout, 'const int ' + name + '_l = sizeof (' + name + '_s);')
 
 NATIVE_STRUCT = '''
 struct native_mod {
   const char* name;
-  const char* source;
-  const int length;
+  const void* snapshot;
+  const size_t length;
 };
 
 __attribute__ ((used)) static struct native_mod natives[] = {
