@@ -104,7 +104,7 @@ for path in files:
 
     # FIXME
     ret = subprocess.call([DUMPER,
-                          '--dump-snapshot',
+                          '--dump-snapshot-for-eval',
                           path + '.snapshot',
                           path + '.wrapped'])
     if ret != 0:

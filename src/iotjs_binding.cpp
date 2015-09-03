@@ -262,7 +262,6 @@ JResult JObject::ExecSnapshot(const void *snapshot_p,
   jerry_completion_code_t ret;
   ret = jerry_exec_snapshot (snapshot_p,
                              snapshot_size,
-                             false, /* run in eval mode */
                              false, /* the snapshot buffer
                                      * can be referenced
                                      * until jerry_cleanup is not called */
