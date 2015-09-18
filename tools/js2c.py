@@ -63,6 +63,10 @@ FOOTER = '''}
 
 # FIXME
 DUMPER = '../deps/jerry/build/bin/debug.linux/jerry'
+if os.path.isfile(DUMPER) == False:
+    os.chdir('../deps/jerry')
+    subprocess.call(["make", "debug.linux"])
+    os.chdir('../../src')
 
 SRC_PATH = '../src/'
 JS_PATH = SRC_PATH + 'js/'

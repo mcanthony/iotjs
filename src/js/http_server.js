@@ -238,6 +238,7 @@ function connectionListener(socket) {
 
   function socketOnClose() {
     if (this.parser) {
+      this.parser.socket = null;
       this.parser = null;
     }
   }
@@ -255,6 +256,7 @@ function connectionListener(socket) {
       return;
     }
 
+    this.parser.socket = null;
     this.parser = null;
 
     if (!self.httpAllowHalfOpen && socket._socketState.writable) {

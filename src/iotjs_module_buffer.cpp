@@ -29,7 +29,7 @@ BufferWrap::BufferWrap(JObject& jbuiltin,
     , _buffer(NULL)
     , _length(length) {
   _buffer = AllocBuffer(length);
-  IOTJS_ASSERT(_buffer != NULL);
+  IOTJS_ASSERT(length == 0 || _buffer != NULL);
 }
 
 
@@ -43,7 +43,7 @@ BufferWrap::~BufferWrap() {
 BufferWrap* BufferWrap::FromJBufferBuiltin(JObject& jbuiltin) {
   IOTJS_ASSERT(jbuiltin.IsObject());
   BufferWrap* buffer = reinterpret_cast<BufferWrap*>(jbuiltin.GetNative());
-  IOTJS_ASSERT(buffer != NULL);
+  //IOTJS_ASSERT(buffer != NULL);
   return buffer;
 }
 
@@ -155,7 +155,7 @@ JHANDLER_FUNCTION(Buffer) {
 
   BufferWrap* buffer_wrap = new BufferWrap(*jbuiltin, length);
   IOTJS_ASSERT(buffer_wrap == (BufferWrap*)(jbuiltin->GetNative()));
-  IOTJS_ASSERT(buffer_wrap->buffer() != NULL);
+  IOTJS_ASSERT(length == 0 || buffer_wrap->buffer() != NULL);
 
   return true;
 }

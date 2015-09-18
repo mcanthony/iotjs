@@ -35,6 +35,7 @@ set(FLAGS_COMMON -mcpu=cortex-m4
                  -D__ARM__
                  -DCONFIG_WCHAR_BUILTIN
                  -Os
+                 -fno-short-enums
                  -fno-strict-aliasing
                  -fno-strength-reduce
                  -fomit-frame-pointer)
@@ -51,4 +52,3 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 
 set(TARGET_INC ${TARGET_INC} "${NUTTX_HOME}/include")
 set(TARGET_INC ${TARGET_INC} "${NUTTX_HOME}/include/cxx")
-

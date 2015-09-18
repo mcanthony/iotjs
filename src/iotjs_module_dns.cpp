@@ -26,6 +26,7 @@ typedef ReqWrap<uv_getaddrinfo_t> GetAddrInfoReqWrap;
 
 
 static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, addrinfo* res) {
+#ifndef __NUTTX__
   GetAddrInfoReqWrap* req_wrap = reinterpret_cast<GetAddrInfoReqWrap*>(
       req->data);
 
@@ -62,6 +63,7 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, addrinfo* res) {
   MakeCallback(req_wrap->jcallback(), JObject::Null(), args);
 
   delete req_wrap;
+#endif
 }
 
 
@@ -78,6 +80,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   int flags = handler.GetArg(2)->GetInt32();
   JObject* jcallback = handler.GetArg(3);
 
+#ifndef __NUTTX__
   int family;
   if (option == 0) {
     family = AF_UNSPEC;
@@ -108,6 +111,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   }
 
   handler.Return(JVal::Number(err));
+#endif
 
   return true;
 }
@@ -120,8 +124,13 @@ JObject* InitDns() {
   if (dns == NULL) {
     dns = new JObject();
     dns->SetMethod("getaddrinfo", GetAddrInfo);
+#ifndef __NUTTX__
     dns->SetProperty("AI_ADDRCONFIG", JVal::Number(AI_ADDRCONFIG));
     dns->SetProperty("AI_V4MAPPED", JVal::Number(AI_V4MAPPED));
+#else
+    dns->SetProperty("AI_ADDRCONFIG", JVal::Number(64)); // FIXME
+    dns->SetProperty("AI_V4MAPPED", JVal::Number(16));   // FIXME
+#endif
 
     module->module = dns;
   }

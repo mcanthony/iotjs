@@ -155,7 +155,7 @@ JHANDLER_FUNCTION(Compile){
 }
 
 
-JHANDLER_FUNCTION(CompileNativePtr, handler){
+JHANDLER_FUNCTION(CompileNativePtr){
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsString());
 
